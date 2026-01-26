@@ -1,0 +1,31 @@
+# FastAPI and server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+psycopg2-binary==2.9.9
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# OAuth
+google-auth==2.25.2
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+
+# Email
+email-validator==2.1.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Validation
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# CORS
+python-cors==1.0.0
+

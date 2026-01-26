@@ -1,0 +1,1739 @@
+openapi: 3.0.3
+info:
+  title: OBE System API
+  description: |
+    Outcome-Based Education Management System API
+    
+    This API provides endpoints for:
+    - Authentication (JWT, Google OAuth, Email OTP)
+    - User management with RBAC
+    - Course and outcome management
+    - Assessment and result tracking
+    - Analytics and reporting
+  version: 1.0.0
+  contact:
+    name: OBE System API Support
+    email: support@obesystem.com
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+  - url: https://api.obesystem.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Users
+    description: User management endpoints
+  - name: Courses
+    description: Course management endpoints
+  - name: Outcomes
+    description: PLO and CLO management endpoints
+  - name: Mappings
+    description: CO-PO mapping endpoints
+  - name: Assessments
+    description: Assessment management endpoints
+  - name: Results
+    description: Result entry and feedback endpoints
+  - name: Analytics
+    description: Analytics and reporting endpoints
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/google:
+    post:
+      tags: [Authentication]
+      summary: Google OAuth callback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: OAuth authorization code
+      responses:
+        '200':
+          description: OAuth authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/otp/request:
+    post:
+      tags: [Authentication]
+      summary: Request OTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/otp/verify:
+    post:
+      tags: [Authentication]
+      summary: Verify OTP and login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: OTP verified, login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh JWT token
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout (invalidate token)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # User Management Endpoints
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [Admin, Teacher, Student]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags: [Users]
+      summary: Create user (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Get user details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Users]
+      summary: Update user (Admin or self)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Users]
+      summary: Delete user (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}/profile:
+    get:
+      tags: [Users]
+      summary: Get own profile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  # Course Management Endpoints
+  /courses:
+    get:
+      tags: [Courses]
+      summary: List courses (role-based filtering)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseListResponse'
+
+    post:
+      tags: [Courses]
+      summary: Create course (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{id}:
+    get:
+      tags: [Courses]
+      summary: Get course details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Course details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Courses]
+      summary: Update course (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Course updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Courses]
+      summary: Delete course (Admin only, soft delete)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Course deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{id}/teachers:
+    post:
+      tags: [Courses]
+      summary: Assign teacher to course (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [teacher_id]
+              properties:
+                teacher_id:
+                  type: integer
+      responses:
+        '201':
+          description: Teacher assigned successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{id}/students:
+    get:
+      tags: [Courses]
+      summary: List enrolled students (Teacher/Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of enrolled students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Outcome Endpoints
+  /plos:
+    get:
+      tags: [Outcomes]
+      summary: List Program Learning Outcomes
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of PLOs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PLOResponse'
+
+    post:
+      tags: [Outcomes]
+      summary: Create PLO (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePLORequest'
+      responses:
+        '201':
+          description: PLO created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PLOResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /plos/{id}:
+    put:
+      tags: [Outcomes]
+      summary: Update PLO (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePLORequest'
+      responses:
+        '200':
+          description: PLO updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PLOResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Outcomes]
+      summary: Delete PLO (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: PLO deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{id}/clos:
+    get:
+      tags: [Outcomes]
+      summary: Get CLOs for course
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of CLOs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CLOResponse'
+
+    post:
+      tags: [Outcomes]
+      summary: Create CLO (Admin/Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCLORequest'
+      responses:
+        '201':
+          description: CLO created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CLOResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clos/{id}:
+    put:
+      tags: [Outcomes]
+      summary: Update CLO (Admin/Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCLORequest'
+      responses:
+        '200':
+          description: CLO updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CLOResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Outcomes]
+      summary: Delete CLO (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: CLO deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Mapping Endpoints
+  /mappings:
+    get:
+      tags: [Mappings]
+      summary: List CO-PO mappings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clo_id
+          in: query
+          schema:
+            type: integer
+        - name: plo_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of mappings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mappings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MappingResponse'
+
+    post:
+      tags: [Mappings]
+      summary: Create CO-PO mapping (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMappingRequest'
+      responses:
+        '201':
+          description: Mapping created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MappingResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /mappings/{id}:
+    put:
+      tags: [Mappings]
+      summary: Update mapping (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMappingRequest'
+      responses:
+        '200':
+          description: Mapping updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MappingResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Mappings]
+      summary: Delete mapping (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Mapping deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /courses/{id}/mappings:
+    get:
+      tags: [Mappings]
+      summary: Get mappings for course
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of mappings for course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mappings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MappingResponse'
+
+  # Assessment Endpoints
+  /courses/{id}/assessments:
+    get:
+      tags: [Assessments]
+      summary: List assessments for course
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of assessments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assessments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssessmentResponse'
+
+    post:
+      tags: [Assessments]
+      summary: Create assessment (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssessmentRequest'
+      responses:
+        '201':
+          description: Assessment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /assessments/{id}:
+    get:
+      tags: [Assessments]
+      summary: Get assessment details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Assessment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Assessments]
+      summary: Update assessment (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssessmentRequest'
+      responses:
+        '200':
+          description: Assessment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      tags: [Assessments]
+      summary: Delete assessment (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Assessment deleted successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Result Endpoints
+  /assessments/{id}/results:
+    get:
+      tags: [Results]
+      summary: Get results for assessment (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResultResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /students/{id}/results:
+    get:
+      tags: [Results]
+      summary: Get student results (Teacher/Student)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: course_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of student results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResultResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /results:
+    post:
+      tags: [Results]
+      summary: Create result entry (Teacher)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResultRequest'
+      responses:
+        '201':
+          description: Result created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /results/bulk:
+    post:
+      tags: [Results]
+      summary: Bulk result entry (Teacher)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CreateResultRequest'
+      responses:
+        '201':
+          description: Results created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /results/{id}:
+    put:
+      tags: [Results]
+      summary: Update result (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateResultRequest'
+      responses:
+        '200':
+          description: Result updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /results/{id}/feedback:
+    post:
+      tags: [Results]
+      summary: Add feedback to result (Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [comment]
+              properties:
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Feedback added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Analytics Endpoints
+  /analytics/course/{id}:
+    get:
+      tags: [Analytics]
+      summary: Course analytics (Teacher/Admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Course analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseAnalyticsResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /analytics/program:
+    get:
+      tags: [Analytics]
+      summary: Program-level analytics (Admin)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Program analytics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramAnalyticsResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /analytics/student/{id}:
+    get:
+      tags: [Analytics]
+      summary: Student progress analytics (Student/Teacher)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Student progress data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentAnalyticsResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /analytics/outcomes/{id}:
+    get:
+      tags: [Analytics]
+      summary: Outcome achievement analytics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [PLO, CLO]
+      responses:
+        '200':
+          description: Outcome achievement data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutcomeAnalyticsResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password, first_name, last_name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role_id:
+          type: integer
+          description: Default role if not provided
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleResponse'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+    CreateUserRequest:
+      type: object
+      required: [email, first_name, last_name, role_id]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role_id:
+          type: integer
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role_id:
+          type: integer
+        is_active:
+          type: boolean
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total_pages:
+          type: integer
+
+    CreateCourseRequest:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        credits:
+          type: integer
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        credits:
+          type: integer
+
+    CourseResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        credits:
+          type: integer
+        teachers:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        created_at:
+          type: string
+          format: date-time
+
+    CourseListResponse:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    CreatePLORequest:
+      type: object
+      required: [code, description]
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+
+    UpdatePLORequest:
+      type: object
+      properties:
+        description:
+          type: string
+
+    PLOResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateCLORequest:
+      type: object
+      required: [code, description]
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+
+    UpdateCLORequest:
+      type: object
+      properties:
+        description:
+          type: string
+
+    CLOResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        course_id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    CreateMappingRequest:
+      type: object
+      required: [clo_id, plo_id]
+      properties:
+        clo_id:
+          type: integer
+        plo_id:
+          type: integer
+        strength:
+          type: string
+          enum: [Strong, Moderate, Weak]
+          default: Moderate
+
+    UpdateMappingRequest:
+      type: object
+      properties:
+        strength:
+          type: string
+          enum: [Strong, Moderate, Weak]
+
+    MappingResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        clo:
+          $ref: '#/components/schemas/CLOResponse'
+        plo:
+          $ref: '#/components/schemas/PLOResponse'
+        strength:
+          type: string
+
+    CreateAssessmentRequest:
+      type: object
+      required: [name, type, weight, max_score]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [Quiz, Assignment, Exam, Project]
+        description:
+          type: string
+        weight:
+          type: number
+          minimum: 0
+          maximum: 100
+        max_score:
+          type: number
+        due_date:
+          type: string
+          format: date-time
+        clo_ids:
+          type: array
+          items:
+            type: integer
+
+    UpdateAssessmentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        weight:
+          type: number
+        max_score:
+          type: number
+        due_date:
+          type: string
+          format: date-time
+        clo_ids:
+          type: array
+          items:
+            type: integer
+
+    AssessmentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        course_id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        weight:
+          type: number
+        max_score:
+          type: number
+        due_date:
+          type: string
+          format: date-time
+        clos:
+          type: array
+          items:
+            $ref: '#/components/schemas/CLOResponse'
+        created_at:
+          type: string
+          format: date-time
+
+    CreateResultRequest:
+      type: object
+      required: [student_id, assessment_id, clo_id, score, max_score]
+      properties:
+        student_id:
+          type: integer
+        assessment_id:
+          type: integer
+        clo_id:
+          type: integer
+        score:
+          type: number
+        max_score:
+          type: number
+
+    UpdateResultRequest:
+      type: object
+      properties:
+        score:
+          type: number
+        max_score:
+          type: number
+
+    ResultResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        student:
+          $ref: '#/components/schemas/UserResponse'
+        assessment:
+          $ref: '#/components/schemas/AssessmentResponse'
+        clo:
+          $ref: '#/components/schemas/CLOResponse'
+        score:
+          type: number
+        max_score:
+          type: number
+        percentage:
+          type: number
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackResponse'
+        created_at:
+          type: string
+          format: date-time
+
+    FeedbackResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        result_id:
+          type: integer
+        comment:
+          type: string
+        created_by:
+          $ref: '#/components/schemas/UserResponse'
+        created_at:
+          type: string
+          format: date-time
+
+    CourseAnalyticsResponse:
+      type: object
+      properties:
+        course_id:
+          type: integer
+        total_students:
+          type: integer
+        outcome_achievement:
+          type: array
+          items:
+            type: object
+            properties:
+              clo_id:
+                type: integer
+              achievement_rate:
+                type: number
+        average_grade:
+          type: number
+
+    ProgramAnalyticsResponse:
+      type: object
+      properties:
+        plo_achievement:
+          type: array
+          items:
+            type: object
+            properties:
+              plo_id:
+                type: integer
+              achievement_rate:
+                type: number
+        total_courses:
+          type: integer
+        total_students:
+          type: integer
+
+    StudentAnalyticsResponse:
+      type: object
+      properties:
+        student_id:
+          type: integer
+        courses:
+          type: array
+          items:
+            type: object
+            properties:
+              course_id:
+                type: integer
+              grade:
+                type: number
+              outcome_achievement:
+                type: array
+                items:
+                  type: object
+
+    OutcomeAnalyticsResponse:
+      type: object
+      properties:
+        outcome_id:
+          type: integer
+        type:
+          type: string
+        achievement_rate:
+          type: number
+        student_count:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+

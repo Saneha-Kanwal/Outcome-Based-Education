@@ -1,0 +1,23 @@
+/**
+ * Error message component styles
+ */
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: calc(var(--spacing-sm) * 1.1) var(--spacing-lg);
+  background: rgba(254, 202, 202, 0.45);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-lg);
+  color: var(--color-error-dark);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-sm) 0;
+  box-shadow: 0 8px 18px -12px rgba(239, 68, 68, 0.18);
+}
+
+.error-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+

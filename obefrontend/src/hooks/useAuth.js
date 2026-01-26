@@ -1,0 +1,8 @@
+/**
+ * useAuth hook - convenience hook for AuthContext
+ */
+
+import { useAuth as useAuthContext } from '../contexts/AuthContext';
+
+export const useAuth = useAuthContext;
+

@@ -1,0 +1,131 @@
+/**
+ * Admin Users page styles
+ */
+
+.admin-page {
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.page-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.users-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.create-user-form {
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.form-actions {
+  margin-top: var(--spacing-lg);
+}
+
+.users-table-container {
+  overflow-x: auto;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table thead {
+  background-color: var(--color-surface);
+}
+
+.users-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.users-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.users-table tbody tr:hover {
+  background-color: var(--color-surface);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.status-badge.active {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.status-badge.inactive {
+  background-color: var(--color-error-light);
+  color: var(--color-error-dark);
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: var(--spacing-md);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .users-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: var(--spacing-sm);
+  }
+}
+

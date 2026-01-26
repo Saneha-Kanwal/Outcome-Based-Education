@@ -1,0 +1,24 @@
+/**
+ * Register page styles
+ */
+
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  padding: var(--spacing-lg);
+}
+
+.register-container {
+  width: 100%;
+  max-width: 600px;
+}
+
+@media (max-width: 768px) {
+  .register-page {
+    padding: var(--spacing-md);
+  }
+}
+

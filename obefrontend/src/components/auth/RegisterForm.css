@@ -1,0 +1,43 @@
+/**
+ * Register form styles
+ */
+
+.register-form {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.register-form h2 {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text);
+  font-size: var(--font-size-2xl);
+}
+
+.auth-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  padding: 0;
+}
+
+.link-button:hover {
+  color: var(--color-primary-dark);
+}
+

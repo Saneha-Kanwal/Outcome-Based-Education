@@ -1,0 +1,24 @@
+/**
+ * Login page styles
+ */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  padding: var(--spacing-lg);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: var(--spacing-md);
+  }
+}
+

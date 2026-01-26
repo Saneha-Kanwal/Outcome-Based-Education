@@ -1,0 +1,14 @@
+/**
+ * App component styles
+ */
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Ensure full width for app */
+.app {
+  min-height: 100vh;
+  width: 100%;
+}

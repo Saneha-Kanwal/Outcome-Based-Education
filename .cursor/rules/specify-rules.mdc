@@ -1,0 +1,180 @@
+# OBE System Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-01-27
+
+## Active Technologies
+
+**Backend:**
+- Python 3.10+ with FastAPI
+- PostgreSQL 12+ (raw SQL, no ORM)
+- JWT authentication (PyJWT)
+- Google OAuth2 (google-auth)
+- bcrypt for password hashing
+- pytest for testing
+
+**Frontend:**
+- React.js 19.1.1
+- Vite for build tooling
+- Axios for HTTP client
+- React Router for routing
+- Context API for state management (no Redux)
+- Jest + React Testing Library for testing
+
+**Database:**
+- PostgreSQL with raw SQL queries
+- psycopg2 or asyncpg for database connections
+- Connection pooling for performance
+
+**Development Tools:**
+- ESLint for frontend linting
+- Black/Flake8 for backend linting
+- Git for version control
+
+## Project Structure
+
+```text
+OBEfinal/
+├── obebackend/
+│   ├── src/obebackend/
+│   │   ├── main.py                 # FastAPI app entry
+│   │   ├── config.py               # Configuration
+│   │   ├── database/               # DB connection & queries
+│   │   ├── routes/                 # API endpoints
+│   │   ├── controllers/            # Business logic
+│   │   ├── schemas/                # Pydantic models
+│   │   ├── middleware/            # Auth, RBAC, error handling
+│   │   ├── utils/                  # Security, OAuth, OTP, email
+│   │   └── tests/                  # Test files
+│   └── requirements.txt
+│
+└── obefrontend/
+    ├── src/
+    │   ├── components/             # Reusable components
+    │   ├── pages/                  # Page components
+    │   ├── contexts/               # Context API (Auth, User)
+    │   ├── services/               # API services
+    │   ├── utils/                  # Helpers, validators
+    │   ├── hooks/                  # Custom hooks
+    │   └── styles/                 # CSS files
+    └── package.json
+```
+
+## Commands
+
+### Backend Commands
+
+```bash
+# Setup
+cd obebackend
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+
+# Run server
+uvicorn src.obebackend.main:app --reload
+
+# Run tests
+pytest
+pytest --cov  # with coverage
+
+# Database
+psql -U obe_user -d obe_db -f schema.sql
+```
+
+### Frontend Commands
+
+```bash
+# Setup
+cd obefrontend
+npm install
+
+# Run dev server
+npm run dev
+
+# Build
+npm run build
+
+# Run tests
+npm test
+npm run lint
+```
+
+## Code Style
+
+### Python (Backend)
+
+- Follow PEP 8 style guide
+- Use type hints where possible
+- Format with Black: `black .`
+- Lint with Flake8: `flake8 .`
+- Use docstrings for functions and classes
+- Maximum line length: 100 characters
+
+**Naming Conventions:**
+- Functions/variables: `snake_case`
+- Classes: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Private: prefix with `_`
+
+### JavaScript/React (Frontend)
+
+- Use ES6+ syntax
+- Functional components with hooks
+- Use ESLint configuration
+- Format with Prettier (if configured)
+- Use meaningful component and variable names
+
+**Naming Conventions:**
+- Components: `PascalCase` (e.g., `UserProfile.jsx`)
+- Functions/variables: `camelCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Files: match component name
+
+**React Patterns:**
+- Use Context API for global state (Auth, User)
+- Use local state for component-specific data
+- Extract reusable logic into custom hooks
+- Keep components small and focused
+
+### SQL (Database)
+
+- Use parameterized queries (prevent SQL injection)
+- Use JOINs instead of multiple queries
+- Add indexes for frequently queried columns
+- Use transactions for multi-step operations
+- Comment complex queries
+
+**Naming Conventions:**
+- Tables: `snake_case` (plural, e.g., `users`, `course_teachers`)
+- Columns: `snake_case`
+- Indexes: `idx_tablename_columnname`
+- Foreign keys: `tablename_id`
+
+## Recent Changes
+
+### Feature: OBE System Complete Specification (2025-01-27)
+
+**Added Technologies:**
+- FastAPI for REST API backend
+- React.js 19.1.1 with Context API
+- PostgreSQL with raw SQL (no ORM)
+- JWT authentication with refresh tokens
+- Google OAuth2 integration
+- Email OTP authentication
+- Role-Based Access Control (RBAC)
+
+**Project Structure:**
+- Separate backend (FastAPI) and frontend (React.js) directories
+- Clean architecture: routes, controllers, schemas, queries, middleware
+- Component-based frontend with reusable components
+- Context API for global state management
+
+**Key Features:**
+- Three role-based dashboards (Admin, Teacher, Student)
+- Course and outcome management (PLOs, CLOs)
+- Assessment and result tracking
+- Analytics and reporting
+- Multi-method authentication (JWT, OAuth, OTP)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

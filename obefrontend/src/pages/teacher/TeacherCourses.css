@@ -1,0 +1,106 @@
+@import '../../styles/variables.css';
+
+.teacher-courses-page {
+  padding: var(--spacing-xl) var(--spacing-xxl);
+  background: var(--color-background, #f7f9fc);
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.teacher-courses-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-lg);
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.teacher-courses-header h1 {
+  margin: 0;
+  font-size: var(--font-size-xxl);
+  color: var(--color-text-primary, #1b1f3b);
+}
+
+.teacher-courses-header p {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-text-secondary, #5a607f);
+}
+
+.teacher-courses-loading,
+.teacher-courses-empty {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--color-text-secondary, #5a607f);
+}
+
+.teacher-courses-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.teacher-course-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  border: 1px solid var(--color-border, #e2e6f2);
+}
+
+.teacher-course-card h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary, #1b1f3b);
+}
+
+.course-description {
+  margin: 0;
+  color: var(--color-text-secondary, #5a607f);
+}
+
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary, #5a607f);
+}
+
+@media (max-width: 1200px) {
+  .teacher-courses-page {
+    padding: var(--spacing-xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .teacher-courses-page {
+    padding: var(--spacing-lg);
+  }
+
+  .teacher-courses-header {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .teacher-courses-page {
+    padding: var(--spacing-md);
+  }
+
+  .teacher-courses-header {
+    padding: var(--spacing-md);
+  }
+}
+

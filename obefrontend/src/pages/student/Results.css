@@ -1,0 +1,45 @@
+/**
+ * Student Results page styles
+ */
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.result-info {
+  margin-top: var(--spacing-lg);
+}
+
+.result-info p {
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.results-summary {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-xl);
+  align-items: center;
+}
+
+.summary-label {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: rgba(226, 232, 240, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.summary-value {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
