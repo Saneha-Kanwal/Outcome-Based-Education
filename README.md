@@ -40,7 +40,29 @@ npm run dev
 > **Note:** Backend must be running before starting frontend. See [Quick Start Section](#-quick-start---running-commands) for detailed instructions.
 
 ---
-## 📋 Demo Vedio
+## 📋 Pictures
+**Admin Dashboard**
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/ac2be148-a02f-4880-a534-9f453be2efe3" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/e2b75d2a-817b-48c8-a5e4-f06954e82b99" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/b7e97e97-e3d0-4d65-ba6b-18abd92be875" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/8caaaa67-4dcb-450d-87ab-ac465592aac2" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/b3756eb5-e219-48df-9816-bca118ef7947" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/42670888-18ae-44a1-b726-a90f084bc231" />
+
+**Teacher Dashboard**
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/b4993a2b-86cc-4478-b00b-5ae584d4ef04" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/3e133161-f7b3-4d8b-bdb0-9f714fcd8499" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/66c59396-83f1-40c5-ad9e-b6ee2e5fcc14" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/db42e0dd-2741-48c3-b94f-7bec51642060" />
+
+**Student Dashboard**
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/1015fb96-0d8e-4153-9a2d-63b796cc6a72" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/1b6bc4f1-032b-473a-bd7b-f11ee65cc680" />
+<img width="1366" height="598" alt="image" src="https://github.com/user-attachments/assets/4dd588e5-8f40-4a61-82c9-a41e5418f173" />
+
+
+
+
 
 
 
